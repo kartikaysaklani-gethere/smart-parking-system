@@ -76,7 +76,7 @@ export default function LandingPage() {
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-slate-200 border border-white/15">
               <Activity className="w-3.5 h-3.5 text-[#F2A541]" />
-              <span>{hardwareOnline ? 'ESP32 Hardware Online' : 'Hardware Ready (Expo Demo)'}</span>
+              <span>{hardwareOnline ? 'Connected to IoT Controller' : 'IoT Controller Ready'}</span>
             </div>
           </div>
 
@@ -252,10 +252,10 @@ export default function LandingPage() {
       <section className="rounded-3xl bg-white dark:bg-[#0c182a] border border-slate-200 dark:border-slate-800 p-8 shadow-sm space-y-6">
         <div>
           <h2 className="text-2xl font-black text-[#0B2545] dark:text-white tracking-tight">
-            Hardware & Cloud Specs (Expo Demonstration)
+            Hardware & Automation Infrastructure
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Physical components wired to the ESP32 NodeMCU board.
+            Physical ultrasonic detection, automated barrier gate, and cloud synchronisation.
           </p>
         </div>
 

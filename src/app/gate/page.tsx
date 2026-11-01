@@ -407,7 +407,7 @@ export default function GatePage() {
             {/* Quick Demo QR Test Selector */}
             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 w-full">
               <span className="text-[11px] uppercase tracking-wider font-bold text-slate-500 block mb-2 text-center">
-                Expo Demonstration Shortcut: Test with existing bookings
+                Quick Scan Shortcut: Test with active bookings
               </span>
               <div className="flex flex-wrap gap-2 justify-center">
                 {activeBookings.slice(0, 4).map((b) => (

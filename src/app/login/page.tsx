@@ -113,10 +113,10 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Quick Demo Expo Access Buttons */}
+        {/* Quick Access Buttons */}
         <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
           <span className="text-[11px] uppercase tracking-wider font-bold text-slate-400 block text-center">
-            Expo Instant Access (No credentials needed)
+            Quick 1-Click Access
           </span>
           <div className="grid grid-cols-3 gap-2">
             <button

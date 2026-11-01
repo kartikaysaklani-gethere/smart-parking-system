@@ -175,7 +175,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-[#0F9D9A]" />
             <h1 className="text-2xl sm:text-3xl font-black text-[#0B2545] dark:text-white tracking-tight">
-              Admin & Expo Hardware Simulator
+              Management & Hardware Console
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -235,7 +235,7 @@ export default function AdminPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#0F9D9A] block">
-                  Engineering Expo Demonstration Tool
+                  IoT Telemetry Testing Suite
                 </span>
                 <h2 className="text-xl font-black text-[#0B2545] dark:text-white mt-0.5">
                   ESP32 Microcontroller Simulator

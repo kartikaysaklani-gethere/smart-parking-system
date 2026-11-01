@@ -118,7 +118,7 @@ export default function DashboardPage() {
             />
             <div className="text-left">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
-                <span>{hardwareOnline ? 'ESP32 Device Online' : 'Device Standby / Sim'}</span>
+                <span>{hardwareOnline ? 'IoT Controller Connected' : 'Controller Standby'}</span>
                 <span
                   className={`w-2 h-2 rounded-full ${
                     hardwareOnline ? 'bg-emerald-500' : 'bg-[#F2A541]'
@@ -147,36 +147,36 @@ export default function DashboardPage() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-[#0c182a] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Free Total</span>
-          <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-            {freeTotal} <span className="text-base font-medium text-slate-400">/ 6</span>
+        <div className="bg-white dark:bg-[#0c182a] p-5 rounded-2xl border-2 border-emerald-500/40 dark:border-emerald-500/30 shadow-md">
+          <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Free Total</span>
+          <div className="text-3xl font-black text-emerald-600 dark:text-emerald-300 mt-1">
+            {freeTotal} <span className="text-base font-semibold text-slate-500">/ 6</span>
           </div>
-          <span className="text-[11px] text-slate-500">Immediate parking</span>
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Immediate parking</span>
         </div>
 
-        <div className="bg-white dark:bg-[#0c182a] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ground Floor</span>
+        <div className="bg-white dark:bg-[#0c182a] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-md">
+          <span className="text-xs font-black text-[#0B2545] dark:text-slate-300 uppercase tracking-wider">Ground Floor</span>
           <div className="text-3xl font-black text-[#0B2545] dark:text-white mt-1">
-            {freeGround} <span className="text-base font-medium text-slate-400">/ 3</span>
+            {freeGround} <span className="text-base font-semibold text-slate-500">/ 3</span>
           </div>
-          <span className="text-[11px] text-slate-500">G1, G2, G3</span>
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">G1, G2, G3</span>
         </div>
 
-        <div className="bg-white dark:bg-[#0c182a] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">1st Floor</span>
+        <div className="bg-white dark:bg-[#0c182a] p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-md">
+          <span className="text-xs font-black text-[#0B2545] dark:text-slate-300 uppercase tracking-wider">1st Floor</span>
           <div className="text-3xl font-black text-[#0B2545] dark:text-white mt-1">
-            {freeFirst} <span className="text-base font-medium text-slate-400">/ 3</span>
+            {freeFirst} <span className="text-base font-semibold text-slate-500">/ 3</span>
           </div>
-          <span className="text-[11px] text-slate-500">F1, F2, F3</span>
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">F1, F2, F3</span>
         </div>
 
-        <div className="bg-white dark:bg-[#0c182a] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hourly Tariff</span>
-          <div className="text-2xl font-black text-[#0F9D9A] mt-1">₹40 / hr</div>
+        <div className="bg-white dark:bg-[#0c182a] p-5 rounded-2xl border-2 border-[#0F9D9A]/50 dark:border-[#0F9D9A]/40 shadow-md flex flex-col justify-between">
+          <span className="text-xs font-black text-[#0F9D9A] uppercase tracking-wider">Hourly Tariff</span>
+          <div className="text-3xl font-black text-[#0B2545] dark:text-white mt-1">₹40 <span className="text-xs font-semibold text-slate-500">/ hr</span></div>
           <Link
             href="/book"
-            className="text-xs font-semibold text-[#0B2545] dark:text-[#38bdf8] hover:underline flex items-center gap-1"
+            className="text-xs font-bold text-[#0F9D9A] hover:underline flex items-center gap-1"
           >
             Reserve Slot →
           </Link>

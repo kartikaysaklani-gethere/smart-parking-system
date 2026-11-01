@@ -45,8 +45,8 @@ export function Navbar() {
             <span className="font-bold text-lg tracking-tight text-[#0B2545] dark:text-white flex items-center gap-1.5">
               ParkSmart <span className="text-[#0F9D9A]">IoT</span>
             </span>
-            <span className="text-[10px] block font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Lab & Expo System
+            <span className="text-[10px] block font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Intelligent Slot Detection
             </span>
           </div>
         </Link>
