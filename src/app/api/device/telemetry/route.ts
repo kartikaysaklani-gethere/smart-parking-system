@@ -24,6 +24,16 @@ const DeviceTelemetrySchema = z.object({
 let lastRequestTime = 0;
 let requestCount = 0;
 
+export async function GET() {
+  return NextResponse.json({
+    status: 'online',
+    message: 'Smart Parking ESP32 Telemetry API is Live and Operational!',
+    method_expected: 'POST',
+    header_expected: 'x-device-key: esp32_smart_parking_secret_key_2026',
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Device Key Authentication
