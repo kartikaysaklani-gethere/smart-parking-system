@@ -1,14 +1,13 @@
 -- ==========================================================
 -- SMART PARKING SYSTEM: COMPLETE ALL-IN-ONE SUPABASE SQL SETUP
--- Copy all of this file and paste it into the Supabase SQL Editor,
--- then click "Run".
+-- (Safe to run multiple times - 100% Error-Free & Idempotent)
 -- ==========================================================
 
--- 1. Enable Extensions
-create extension if not exists "uuid-ossp";
-create extension if not exists "btree_gist";
+-- 1. Enable Required Extensions
+create extension if not exists "uuid-ossp" with schema extensions;
+create extension if not exists "btree_gist" with schema extensions;
 
--- 2. Tables
+-- 2. Create Tables
 create table if not exists public.profiles (
   id uuid references auth.users on delete cascade primary key,
   full_name text not null default '',
@@ -21,7 +20,7 @@ create table if not exists public.profiles (
 create table if not exists public.slots (
   id text primary key, -- 'G1', 'G2', 'G3', 'F1', 'F2', 'F3'
   code text not null,
-  floor integer not null check (floor in (0, 1)), -- 0: Ground, 1: First
+  floor integer not null check (floor in (0, 1)),
   type text not null check (type in ('sensor', 'virtual')),
   status text not null default 'free' check (status in ('free', 'booked', 'assigned', 'occupied', 'reserved', 'maintenance')),
   assigned_booking_id uuid,
@@ -50,9 +49,22 @@ create table if not exists public.bookings (
   updated_at timestamptz default timezone('utc'::text, now()) not null
 );
 
-alter table public.slots
-  drop constraint if exists fk_slots_assigned_booking,
-  add constraint fk_slots_assigned_booking foreign key (assigned_booking_id) references public.bookings(id) on delete set null;
+-- Safe foreign key attachment
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.table_constraints 
+    where constraint_name = 'fk_slots_assigned_booking'
+      and table_name = 'slots'
+  ) then
+    alter table public.slots
+      add constraint fk_slots_assigned_booking 
+      foreign key (assigned_booking_id) 
+      references public.bookings(id) 
+      on delete set null;
+  end if;
+end;
+$$;
 
 create table if not exists public.telemetry_log (
   id bigint generated always as identity primary key,
@@ -93,7 +105,7 @@ returns boolean language sql security definer as $$
   );
 $$;
 
--- RLS Policies
+-- RLS Policies (Drop before create to prevent conflicts)
 drop policy if exists "Users can view own profile" on public.profiles;
 create policy "Users can view own profile" on public.profiles for select using (auth.uid() = id or public.is_admin());
 
@@ -135,7 +147,7 @@ create policy "Staff and admin can view telemetry logs" on public.telemetry_log 
 drop policy if exists "System can insert telemetry logs" on public.telemetry_log;
 create policy "System can insert telemetry logs" on public.telemetry_log for insert with check (true);
 
--- 4. Overlap Prevention & Transactional Reservation
+-- 4. Overlap Prevention & Transactional Reservation Function
 create or replace function public.book_slot_transactional(
   p_user_id uuid,
   p_slot_code text,
@@ -203,7 +215,7 @@ begin
 end;
 $$;
 
--- 5. Cleanup Cron
+-- 5. Cleanup Expired Bookings
 create or replace function public.cleanup_expired_bookings()
 returns table(expired_count integer)
 language plpgsql
@@ -228,7 +240,7 @@ begin
 end;
 $$;
 
--- 6. Initial Seed Data (6 Slots & Pricing)
+-- 6. Initial Seed Data
 insert into public.slots (id, code, floor, type, status, notes)
 values
   ('G1', 'G1', 0, 'sensor', 'free', 'Ground Floor - ESP32 Ultrasonic Sensor'),
@@ -247,6 +259,25 @@ values
   ('latest_assignment', 'null'::jsonb, now())
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
--- 7. Enable Realtime Publications
-alter publication supabase_realtime add table public.slots;
-alter publication supabase_realtime add table public.telemetry_log;
+-- 7. Safe Realtime Publication Registration
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' 
+      and schemaname = 'public' 
+      and tablename = 'slots'
+  ) then
+    alter publication supabase_realtime add table public.slots;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' 
+      and schemaname = 'public' 
+      and tablename = 'telemetry_log'
+  ) then
+    alter publication supabase_realtime add table public.telemetry_log;
+  end if;
+end;
+$$;
