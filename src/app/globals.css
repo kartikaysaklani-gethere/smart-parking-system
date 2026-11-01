@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 210 33% 97%; /* #F4F8FB */
+    --foreground: 215 72% 16%; /* #0B2545 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 72% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 72% 16%;
+
+    --primary: 215 72% 16%; /* Navy #0B2545 */
+    --primary-foreground: 210 33% 97%;
+
+    --secondary: 178 82% 34%; /* Teal #0F9D9A */
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 34 87% 60%; /* Amber #F2A541 */
+    --accent-foreground: 215 72% 16%;
+
+    --muted: 210 25% 92%;
+    --muted-foreground: 215 25% 40%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 25% 88%;
+    --input: 210 25% 88%;
+    --ring: 178 82% 34%;
+
+    --radius: 0.75rem;
+
+    /* Semantic slot colors */
+    --slot-free: #10b981;
+    --slot-booked: #3b82f6;
+    --slot-assigned: #f59e0b;
+    --slot-occupied: #ef4444;
+    --slot-reserved: #8b5cf6;
+    --slot-maintenance: #6b7280;
+  }
+
+  .dark {
+    --background: 216 60% 8%; /* #08111e */
+    --foreground: 210 33% 98%;
+
+    --card: 216 50% 12%; /* #0d1b2e */
+    --card-foreground: 210 33% 98%;
+
+    --popover: 216 50% 12%;
+    --popover-foreground: 210 33% 98%;
+
+    --primary: 178 82% 38%; /* Teal glowing as primary in dark */
+    --primary-foreground: 216 60% 8%;
+
+    --secondary: 215 50% 30%;
+    --secondary-foreground: 210 33% 98%;
+
+    --accent: 34 87% 60%; /* Amber */
+    --accent-foreground: 216 60% 8%;
+
+    --muted: 216 40% 18%;
+    --muted-foreground: 215 20% 70%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 210 33% 98%;
+
+    --border: 216 40% 20%;
+    --input: 216 40% 20%;
+    --ring: 178 82% 45%;
+
+    --slot-free: #34d399;
+    --slot-booked: #60a5fa;
+    --slot-assigned: #fbbf24;
+    --slot-occupied: #f87171;
+    --slot-reserved: #a78bfa;
+    --slot-maintenance: #9ca3af;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom parking slot badges and pulses */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s infinite ease-in-out;
 }
