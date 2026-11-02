@@ -10,9 +10,9 @@ import { Suspense } from 'react';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Smart Parking System with Intelligent Slot Detection',
+  title: 'ParkPulse | Smart Parking & Mobility Platform',
   description:
-    'IoT-based smart parking system featuring ESP32 ultrasonic sensors, cryptographic QR check-in, dynamic LCD navigation, and real-time cloud management.',
+    'Commercial smart parking reservation platform featuring dual-floor bay monitoring, fast automated barrier entry, and real-time cloud management.',
 };
 
 export default function RootLayout({

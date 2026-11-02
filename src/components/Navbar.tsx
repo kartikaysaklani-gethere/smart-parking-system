@@ -30,7 +30,7 @@ export function Navbar() {
     { href: '/book', label: 'Book Slot', icon: CalendarPlus },
     { href: '/bookings', label: 'My Bookings', icon: Ticket },
     { href: '/gate', label: 'Gate Kiosk', icon: DoorOpen },
-    { href: '/admin', label: 'Admin & Simulator', icon: ShieldCheck },
+    { href: '/admin', label: 'Operations Console', icon: ShieldCheck },
   ];
 
   return (
@@ -38,15 +38,15 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0B2545] to-[#0F9D9A] flex items-center justify-center text-white shadow-md shadow-[#0F9D9A]/20 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
             <Radio className="w-5 h-5 text-white animate-pulse" />
           </div>
           <div>
-            <span className="font-bold text-lg tracking-tight text-[#0B2545] dark:text-white flex items-center gap-1.5">
-              ParkSmart <span className="text-[#0F9D9A]">IoT</span>
+            <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+              ParkPulse <span className="text-indigo-500 text-xs px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800">PRO</span>
             </span>
             <span className="text-[10px] block font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Intelligent Slot Detection
+              Smart Mobility & Parking
             </span>
           </div>
         </Link>

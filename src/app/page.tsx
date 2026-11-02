@@ -48,7 +48,7 @@ export default function LandingPage() {
     }
 
     loadData();
-    const interval = setInterval(loadData, 4000);
+    const interval = setInterval(loadData, 1000);
     return () => clearInterval(interval);
   }, []);
 

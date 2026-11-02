@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     const settings = await getSettings();
 
     // 5. Compute LED Outputs
-    // Rule: An LED is true ONLY for a slot that is currently assigned and not yet occupied.
+    // Rule: Free slot -> LED is ON (green guidance light). Occupied slot -> LED is OFF.
     const leds: Record<string, boolean> = {
       G1: false,
       G2: false,
@@ -130,8 +130,8 @@ export async function POST(req: NextRequest) {
 
     for (const slotId of sensorSlotIds) {
       const s = updatedSlots.find((item) => item.id === slotId);
-      const sensorSaysOccupied = Boolean(payload.slots[slotId]);
-      leds[slotId] = Boolean(s && s.status === 'assigned' && !sensorSaysOccupied);
+      const isOccupied = s?.status === 'occupied' || Boolean(payload.slots[slotId]);
+      leds[slotId] = !isOccupied; // ON if free, OFF if occupied
     }
 
     // 6. Compute LCD Display Lines (16x2)

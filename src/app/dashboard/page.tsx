@@ -56,25 +56,25 @@ export default function DashboardPage() {
     try {
       const supabase = createClient();
       const channel = supabase
-        .channel('realtime:slots')
+        .channel('realtime:parking_slots')
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'slots' },
+          { event: '*', schema: 'public', table: 'parking_slots' },
           () => {
             fetchStatus();
           }
         )
         .subscribe();
 
-      // Polling fallback to guarantee live updates even when Supabase is in mock/offline mode
-      const interval = setInterval(fetchStatus, 3000);
+      // Fast 1-second polling guarantee
+      const interval = setInterval(fetchStatus, 1000);
 
       return () => {
         supabase.removeChannel(channel);
         clearInterval(interval);
       };
     } catch {
-      const interval = setInterval(fetchStatus, 3000);
+      const interval = setInterval(fetchStatus, 1000);
       return () => clearInterval(interval);
     }
   }, [fetchStatus]);

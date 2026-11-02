@@ -374,8 +374,8 @@ export async function cancelBooking(bookingId: string): Promise<Booking> {
     throw new Error('Booking not found.');
   }
 
-  if (booking.status !== 'booked') {
-    throw new Error(`Cannot cancel booking with status '${booking.status}'.`);
+  if (booking.status === 'cancelled') {
+    throw new Error('Booking is already cancelled.');
   }
 
   const updated: Booking = {
@@ -391,11 +391,21 @@ export async function cancelBooking(bookingId: string): Promise<Booking> {
 
   // Release slot if assigned
   const slot = await getSlotById(booking.slot_code);
-  if (slot && slot.assigned_booking_id === bookingId && slot.status === 'booked') {
+  if (slot && (slot.assigned_booking_id === bookingId || slot.status === 'booked' || slot.status === 'assigned')) {
     await updateSlot(booking.slot_code, {
       status: 'free',
       assigned_booking_id: null,
     });
+  }
+
+  if (isLiveSupabaseConfigured()) {
+    try {
+      const supabase = createAdminClient();
+      await supabase.from('bookings').update({ status: 'cancelled', updated_at: updated.updated_at }).eq('id', bookingId);
+      await supabase.from('parking_slots').update({ status: 'free', assigned_booking_id: null, updated_at: new Date().toISOString() }).eq('id', booking.slot_code);
+    } catch {
+      // Fallback handled
+    }
   }
 
   return updated;

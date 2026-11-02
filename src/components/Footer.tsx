@@ -15,8 +15,8 @@ export function Footer() {
               <div className="w-8 h-8 rounded-lg bg-[#0B2545] dark:bg-[#0F9D9A] flex items-center justify-center text-white dark:text-[#08111e] font-black text-sm">
                 P
               </div>
-              <span className="font-bold text-base text-[#0B2545] dark:text-white">
-                ParkSmart Intelligent Parking
+              <span className="font-bold text-base text-slate-900 dark:text-white">
+                ParkPulse Smart Mobility
               </span>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
