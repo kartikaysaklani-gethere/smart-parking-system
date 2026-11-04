@@ -59,37 +59,37 @@ export default function LandingPage() {
   return (
     <div className="space-y-16 pb-12">
       {/* 1. Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B2545] via-[#133560] to-[#0a1e38] text-white p-8 sm:p-12 md:p-16 shadow-2xl border border-slate-700/50">
+      <section className="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-8 sm:p-12 md:p-16 shadow-2xl border border-slate-800">
         {/* Subtle decorative grid background */}
-        <div className="absolute inset-0 bg-[radial-gradient(#0F9D9A_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(#6366F1_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none"></div>
 
         <div className="relative z-10 max-w-3xl space-y-6">
           {/* Status Badges */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#0F9D9A]/25 border border-[#0F9D9A]/40 text-[#5eead4]">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
               </span>
-              <span>{loading ? 'Reading Sensors...' : `${freeCount} of 6 Slots Available Now`}</span>
+              <span>{loading ? 'Reading Sensors...' : `${freeCount} of 6 Bays Available (4 Free on Boot)`}</span>
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-slate-200 border border-white/15">
-              <Activity className="w-3.5 h-3.5 text-[#F2A541]" />
-              <span>{hardwareOnline ? 'Connected to IoT Controller' : 'IoT Controller Ready'}</span>
+              <Activity className="w-3.5 h-3.5 text-indigo-400" />
+              <span>{hardwareOnline ? 'IoT Controller Connected' : 'IoT Gateway Live'}</span>
             </div>
           </div>
 
           {/* Heading */}
           <div className="space-y-3">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
-              Smart Parking System with{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0F9D9A] via-[#38bdf8] to-[#F2A541]">
-                Intelligent Slot Detection
+              ParkWise{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400">
+                Smart Mobility Platform
               </span>
             </h1>
             <p className="text-base sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
-              An engineering-grade IoT garage solution. Ultrasonic distance sensing, servo entrance control, cryptographic QR check-in, and dynamic LCD floor guidance in real-time.
+              Enterprise smart facility reservation with dual-floor ultrasonic monitoring, automated 90° barrier entry, instant checkout, and cryptographic QR gate passes.
             </p>
           </div>
 
@@ -97,9 +97,9 @@ export default function LandingPage() {
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link
               href="/book"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-[#0F9D9A] hover:bg-[#0c827f] text-white font-bold text-sm shadow-lg shadow-[#0F9D9A]/30 transition-all hover:scale-105"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all hover:scale-105"
             >
-              <span>Book a Slot Now (₹40/hr)</span>
+              <span>Book a Slot Now</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
@@ -107,16 +107,16 @@ export default function LandingPage() {
               href="/dashboard"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-semibold text-sm border border-white/20 transition-all"
             >
-              <Layers className="w-4 h-4 text-[#38bdf8]" />
-              <span>View Live Map</span>
+              <Layers className="w-4 h-4 text-cyan-400" />
+              <span>Live Garage Map</span>
             </Link>
 
             <Link
-              href="/gate"
+              href="/team"
               className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-medium text-sm border border-white/10 transition-all"
             >
-              <QrCode className="w-4 h-4 text-[#F2A541]" />
-              <span>Gate Kiosk</span>
+              <Cpu className="w-4 h-4 text-emerald-400" />
+              <span>Engineers & Creators</span>
             </Link>
           </div>
         </div>

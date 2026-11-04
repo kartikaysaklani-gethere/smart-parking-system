@@ -167,6 +167,37 @@ export default function AdminPage() {
     }
   };
 
+  // Remote Servo Barrier Control Handler
+  const handleGateCommand = async (action: 'pulse' | 'hold' | 'close') => {
+    try {
+      const hold = action === 'hold';
+      const res = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gate_hold: hold }),
+      });
+      if (!res.ok) throw new Error('Gate command failed');
+
+      if (action === 'pulse') {
+        toast.success('Barrier Pulse Command Dispatched: 90° for 3 Seconds');
+        setTimeout(async () => {
+          await fetch('/api/settings', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gate_hold: false }),
+          });
+        }, 3000);
+      } else if (action === 'hold') {
+        toast.warning('Barrier set to Continuous Hold Open.');
+      } else {
+        toast.success('Barrier returned to Auto Sensor Mode (Closed).');
+      }
+      loadAdminData();
+    } catch {
+      toast.error('Failed to dispatch gate command.');
+    }
+  };
+
   // Update Price
   const handleUpdatePrice = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -614,29 +645,67 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Entrance Barrier Sensor Toggle */}
-            <div
-              onClick={() => setSimGateCar(!simGateCar)}
-              className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${
-                simGateCar
-                  ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/20'
-                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <DoorOpen className={`w-6 h-6 ${simGateCar ? 'text-indigo-600' : 'text-slate-400'}`} />
+            {/* Entrance Barrier Sensor Toggle & Remote Actuator */}
+            <div className="space-y-3">
+              <div
+                onClick={() => setSimGateCar(!simGateCar)}
+                className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                  simGateCar
+                    ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/20'
+                    : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <DoorOpen className={`w-6 h-6 ${simGateCar ? 'text-indigo-600' : 'text-slate-400'}`} />
+                  <div>
+                    <span className="font-black text-sm block">Entrance Barrier Sensor (Gate Servo: 90° for 3s)</span>
+                    <span className="text-xs text-slate-500">
+                      {simGateCar
+                        ? 'Car detected (≤7cm) - Servo opens to 90° for 3 seconds'
+                        : 'Gate clear (>12cm) - Servo in closed position (0°)'}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-xs font-bold underline">
+                  {simGateCar ? 'Set Clear' : 'Simulate Vehicle Arrival (≤7cm)'}
+                </span>
+              </div>
+
+              {/* Physical Cloud Actuation Remote Controls */}
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <span className="font-black text-sm block">Entrance Barrier Sensor (Gate Servo: 150°)</span>
-                  <span className="text-xs text-slate-500">
-                    {simGateCar
-                      ? 'Car detected (<15cm) - Servo opens to 150°'
-                      : 'Gate idle / clear (>25cm) - Servo closed (0°)'}
+                  <span className="font-bold text-xs text-indigo-400 block uppercase tracking-wider">
+                    Physical Barrier Cloud Remote Control
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    Directly actuate the ESP32 SG90 servo motor from anywhere in the world.
                   </span>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleGateCommand('pulse')}
+                    className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all shadow-sm"
+                  >
+                    Open Gate (3s Pulse)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleGateCommand('hold')}
+                    className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition-all shadow-sm"
+                  >
+                    Hold Open
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleGateCommand('close')}
+                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all border border-slate-700"
+                  >
+                    Close / Auto
+                  </button>
+                </div>
               </div>
-              <span className="text-xs font-bold underline">
-                {simGateCar ? 'Set Clear' : 'Simulate Vehicle Arrival'}
-              </span>
             </div>
 
             {/* LCD Screen Display */}

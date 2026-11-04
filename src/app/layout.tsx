@@ -10,9 +10,9 @@ import { Suspense } from 'react';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ParkPulse | Smart Parking & Mobility Platform',
+  title: 'ParkWise | Smart Parking & Mobility Platform',
   description:
-    'Commercial smart parking reservation platform featuring dual-floor bay monitoring, fast automated barrier entry, and real-time cloud management.',
+    'IoT-driven multi-level parking platform by Kartikay Saklani & Anshuman (Chandigarh University). Features real-time ultrasonic slot detection, automated barrier entry, and instant QR passes.',
 };
 
 export default function RootLayout({

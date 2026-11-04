@@ -91,6 +91,7 @@ export interface TelemetryResponse {
 export interface SettingsMap {
   price_per_hour: number;
   device_last_seen: string | null;
+  gate_hold?: boolean;
   latest_assignment: {
     slot_code: SlotId;
     assigned_at: string;

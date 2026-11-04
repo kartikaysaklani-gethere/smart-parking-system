@@ -120,8 +120,25 @@ export async function POST(req: NextRequest) {
     const updatedSlots = await getSlots();
     const settings = await getSettings();
 
-    // 5. Compute LED Outputs
-    // Rule: Free slot -> LED is ON (green guidance light). Occupied slot -> LED is OFF.
+    // 5. Gate Car Presence & Automatic Slot Assignment Workflow
+    // When a vehicle is at the gate (< 7cm), automatically pick first available free sensor slot
+    const carAtGate = Boolean(payload.gate?.car_present);
+    let autoAssignedSlot: SlotId | null = null;
+
+    if (carAtGate) {
+      // Preference: G1 -> G2 -> F1 -> F2
+      const freeSlot = updatedSlots.find(
+        (s) => s.status === 'free' && s.id !== 'G3' && s.id !== 'F3'
+      );
+      if (freeSlot) {
+        autoAssignedSlot = freeSlot.id as SlotId;
+      }
+    }
+
+    // 6. Compute LED Outputs
+    // Rule:
+    // If car at gate and slot auto-assigned: that assigned slot's LED GLOWS bright!
+    // Otherwise: free slots have LED ON, occupied slots have LED OFF.
     const leds: Record<string, boolean> = {
       G1: false,
       G2: false,
@@ -131,38 +148,42 @@ export async function POST(req: NextRequest) {
     for (const slotId of sensorSlotIds) {
       const s = updatedSlots.find((item) => item.id === slotId);
       const isOccupied = s?.status === 'occupied' || Boolean(payload.slots[slotId]);
-      leds[slotId] = !isOccupied; // ON if free, OFF if occupied
-    }
 
-    // 6. Compute LCD Display Lines (16x2)
-    // Rule: Show latest assignment for 20 seconds, otherwise "Free: n/6" and floor-wise count; "PARKING FULL" when 0 free.
-    let lcdLine1 = '';
-    let lcdLine2 = '';
-
-    const latestAssignment = settings.latest_assignment;
-    const isRecentAssignment =
-      latestAssignment &&
-      nowMs - new Date(latestAssignment.assigned_at).getTime() <= 20000;
-
-    if (isRecentAssignment) {
-      const targetSlot = updatedSlots.find((s) => s.id === latestAssignment.slot_code);
-      lcdLine1 = `Go to slot ${latestAssignment.slot_code}`.slice(0, 16);
-      lcdLine2 = targetSlot?.floor === 1 ? '1st Floor' : 'Ground Floor';
-    } else {
-      const groundFree = updatedSlots.filter((s) => s.floor === 0 && s.status === 'free').length;
-      const firstFree = updatedSlots.filter((s) => s.floor === 1 && s.status === 'free').length;
-      const totalFree = groundFree + firstFree;
-
-      if (totalFree === 0) {
-        lcdLine1 = 'PARKING FULL';
-        lcdLine2 = 'Please Wait';
+      if (isOccupied) {
+        leds[slotId] = false; // Turn OFF when occupied
+      } else if (carAtGate && autoAssignedSlot) {
+        // Only glow the specifically assigned parking slot
+        leds[slotId] = autoAssignedSlot === slotId;
       } else {
-        lcdLine1 = `Free: ${totalFree}/6`;
-        lcdLine2 = `G:${groundFree}  F:${firstFree}`;
+        // Standard guidance: lit when free
+        leds[slotId] = true;
       }
     }
 
-    const gateHold = Boolean(payload.gate?.car_present);
+    // 7. Compute LCD Display Lines (16x2)
+    // Total slots = 6 (G1, G2, G3=always occupied, F1, F2, F3=always reserved)
+    // Starts with 4 free out of 6!
+    let lcdLine1 = '';
+    let lcdLine2 = '';
+
+    const groundFree = updatedSlots.filter((s) => s.floor === 0 && s.status === 'free').length;
+    const firstFree = updatedSlots.filter((s) => s.floor === 1 && s.status === 'free').length;
+    const totalFree = groundFree + firstFree;
+
+    if (carAtGate && autoAssignedSlot) {
+      const assignedFloor = autoAssignedSlot.startsWith('G') ? 'Ground' : '1st Floor';
+      lcdLine1 = `PARK AT: ${autoAssignedSlot}`.slice(0, 16);
+      lcdLine2 = `Floor: ${assignedFloor}`.slice(0, 16);
+    } else if (totalFree === 0) {
+      lcdLine1 = 'PARKING FULL';
+      lcdLine2 = '0/6 Available';
+    } else {
+      lcdLine1 = 'PARKWISE SYSTEM';
+      lcdLine2 = `Free: ${totalFree}/6 (G:${groundFree} F:${firstFree})`.slice(0, 16);
+    }
+
+    // Gate hold state (physical car arrival OR manual admin override)
+    const gateHold = Boolean(carAtGate || settings.gate_hold);
 
     const responsePayload: TelemetryResponse = {
       leds: {
