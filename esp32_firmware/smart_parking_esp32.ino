@@ -35,7 +35,7 @@ const char* WIFI_PASSWORD = "kartikay1234";
 // Server Endpoints:
 // - Vercel Cloud (Online): "https://smart-parking-system-ten-pearl.vercel.app"
 // - Local Mac Host (Offline/LAN): "http://10.47.237.156:3000"
-const char* BASE_URL      = "http://10.47.237.156:3000";
+const char* BASE_URL      = "https://smart-parking-system-ten-pearl.vercel.app";
 const char* DEVICE_KEY    = "esp32_smart_parking_secret_key_2026";
 
 // ---------- PIN MAPPINGS (Exact Physical Wiring) ----------
@@ -317,11 +317,15 @@ static void postTelemetry() {
   if (String(BASE_URL).startsWith("https")) {
     WiFiClientSecure client;
     client.setInsecure(); // Fast TLS bypass for embedded telemetry
+    client.setServerName("smart-parking-system-ten-pearl.vercel.app"); // Required for Vercel SNI!
+    client.setTimeout(4);
+    
     HTTPClient http;
-    http.setConnectTimeout(4000);
-    http.setTimeout(4000);
-    if (http.begin(client, url)) {
+    http.setConnectTimeout(5000);
+    http.setTimeout(5000);
+    if (http.begin(client, "smart-parking-system-ten-pearl.vercel.app", 443, "/api/device/telemetry", true)) {
       http.addHeader("Content-Type", "application/json");
+      http.addHeader("Host", "smart-parking-system-ten-pearl.vercel.app");
       http.addHeader("x-device-key", DEVICE_KEY);
       code = http.POST((uint8_t*)payload, strlen(payload));
       if (code > 0) body = http.getString();
@@ -427,9 +431,12 @@ void setup() {
   lcd.clear();
   showLcd("PARKWISE SYSTEM", "Starting Up...");
 
-  // Wi-Fi Setup with Auto-Reconnect
+  // Wi-Fi Setup with Auto-Reconnect & Fast DNS
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
+  // Configure Google DNS (8.8.8.8) to resolve Vercel quickly through mobile hotspot
+  IPAddress dns(8, 8, 8, 8);
+  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, dns);
   Serial.printf("[WIFI] Connecting to '%s'...\n", WIFI_SSID);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
