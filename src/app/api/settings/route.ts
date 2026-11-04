@@ -4,7 +4,9 @@ import { getSettings, updateSettings, isHardwareOnline, getTelemetryLogs } from 
 export async function GET() {
   try {
     const settings = await getSettings();
-    const online = isHardwareOnline();
+    const lastSeenTime = settings.device_last_seen ? new Date(settings.device_last_seen).getTime() : 0;
+    // Hardware is online if memory ping is fresh OR if persistent last_seen is within 15 seconds
+    const online = isHardwareOnline() || (Date.now() - lastSeenTime <= 15000);
     const logs = getTelemetryLogs();
 
     return NextResponse.json({

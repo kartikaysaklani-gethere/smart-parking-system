@@ -31,6 +31,10 @@
 // ===================== WI-FI & CLOUD CONFIG =====================
 const char* WIFI_SSID     = "OnePlus";
 const char* WIFI_PASSWORD = "kartikay1234";
+
+// Server Endpoints:
+// - Vercel Cloud (Online): "https://smart-parking-system-ten-pearl.vercel.app"
+// - Local Mac Host (Offline/LAN): "http://10.47.237.156:3000"
 const char* BASE_URL      = "https://smart-parking-system-ten-pearl.vercel.app";
 const char* DEVICE_KEY    = "esp32_smart_parking_secret_key_2026";
 
@@ -307,27 +311,55 @@ static void postTelemetry() {
            s.car ? "true" : "false", s.dist);
 
   String url = String(BASE_URL) + "/api/device/telemetry";
-  WiFiClientSecure client;
-  client.setInsecure(); // Fast TLS bypass for embedded telemetry
+  int code = -1;
+  String body = "";
 
-  HTTPClient http;
-  http.setConnectTimeout(3000);
-  http.setTimeout(3000);
-  if (!http.begin(client, url)) return;
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("x-device-key", DEVICE_KEY);
+  if (String(BASE_URL).startsWith("https")) {
+    WiFiClientSecure client;
+    client.setInsecure(); // Fast TLS bypass for embedded telemetry
+    HTTPClient http;
+    http.setConnectTimeout(4000);
+    http.setTimeout(4000);
+    if (http.begin(client, url)) {
+      http.addHeader("Content-Type", "application/json");
+      http.addHeader("x-device-key", DEVICE_KEY);
+      code = http.POST((uint8_t*)payload, strlen(payload));
+      if (code > 0) body = http.getString();
+      http.end();
+    }
+  } else {
+    WiFiClient client;
+    HTTPClient http;
+    http.setConnectTimeout(2500);
+    http.setTimeout(2500);
+    if (http.begin(client, url)) {
+      http.addHeader("Content-Type", "application/json");
+      http.addHeader("x-device-key", DEVICE_KEY);
+      code = http.POST((uint8_t*)payload, strlen(payload));
+      if (code > 0) body = http.getString();
+      http.end();
+    }
+  }
 
-  int code = http.POST((uint8_t*)payload, strlen(payload));
-  String body = (code > 0) ? http.getString() : String("");
-  http.end();
-
-  if (code < 200 || code >= 300) return;
-
-  Cmd c;
-  if (!parseResponse(body, c)) return;
-
-  c.okAt = millis();
-  portENTER_CRITICAL(&mux); cmdShared = c; portEXIT_CRITICAL(&mux);
+  // Diagnostic feedback to Serial Monitor
+  if (code == 200) {
+    static unsigned long lastOkLog = 0;
+    if (millis() - lastOkLog >= 4000) {
+      lastOkLog = millis();
+      Serial.println(">>> [SERVER] Connected & Synced! (HTTP 200 OK)");
+    }
+    Cmd c;
+    if (parseResponse(body, c)) {
+      c.okAt = millis();
+      portENTER_CRITICAL(&mux); cmdShared = c; portEXIT_CRITICAL(&mux);
+    }
+  } else {
+    static unsigned long lastErrLog = 0;
+    if (millis() - lastErrLog >= 4000) {
+      lastErrLog = millis();
+      Serial.printf(">>> [SERVER] Sync attempt response: HTTP %d (Check internet or URL)\n", code);
+    }
+  }
 }
 
 void netTask(void*) {
@@ -340,7 +372,7 @@ void netTask(void*) {
         connectedOnce = true;
         Serial.print("\n>>> [WIFI] CONNECTED TO ");
         Serial.print(WIFI_SSID);
-        Serial.print("! IP: ");
+        Serial.print("! ESP32 IP: ");
         Serial.println(WiFi.localIP());
       }
       if (millis() - lastPost >= TELEMETRY_MS) {
@@ -401,15 +433,15 @@ void setup() {
   Serial.printf("[WIFI] Connecting to '%s'...\n", WIFI_SSID);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-  // Start Cloud Telemetry Worker on Core 0
-  xTaskCreatePinnedToCore(netTask, "net", 8192, NULL, 1, NULL, 0);
+  // Start Cloud Telemetry Worker with increased 12KB stack for TLS
+  xTaskCreatePinnedToCore(netTask, "net", 12288, NULL, 1, NULL, 0);
   Serial.println("[BOOT] All systems active. Ready.\n");
 }
 
 void loop() {
   Cmd cmd;
   portENTER_CRITICAL(&mux); cmd = cmdShared; portEXIT_CRITICAL(&mux);
-  bool fresh = cmd.okAt != 0 && (millis() - cmd.okAt) < 5000UL;
+  bool fresh = cmd.okAt != 0 && (millis() - cmd.okAt) < 6000UL;
 
   // Fast Round-Robin Ultrasonic Sensor Polling
   if (millis() - lastTick >= SENSOR_TICK_MS) {
@@ -486,14 +518,16 @@ void loop() {
   // Status Serial Output (Every 1 Second)
   if (millis() - lastPrint >= 1000) {
     lastPrint = millis();
-    Serial.printf("[STATUS] Gate=%.0fcm(Open:%d) | G1=%.0f(%c) G2=%.0f(%c) F1=%.0f(%c) | LEDs=[%d,%d,%d] Free=%d/6 | Wi-Fi=%d\n",
+    bool serverSynced = (cmd.okAt != 0 && (millis() - cmd.okAt) < 6000UL);
+    Serial.printf("[STATUS] Gate=%.0fcm(Open:%d) | G1=%.0f(%c) G2=%.0f(%c) F1=%.0f(%c) | LEDs=[%d,%d,%d] Free=%d/6 | Wi-Fi=%s | Server=%s\n",
                   gateDist, gateIsOpen ? 1 : 0,
                   slotDist[0], occupied[0] ? 'O' : 'F',
                   slotDist[1], occupied[1] ? 'O' : 'F',
                   slotDist[2], occupied[2] ? 'O' : 'F',
                   digitalRead(SLOT_LED[0]), digitalRead(SLOT_LED[1]), digitalRead(SLOT_LED[2]),
                   totalFree,
-                  WiFi.status() == WL_CONNECTED ? 1 : 0);
+                  WiFi.status() == WL_CONNECTED ? "ONLINE" : "OFFLINE",
+                  serverSynced ? "SYNCED" : "CONNECTING...");
   }
   delay(1);
 }
