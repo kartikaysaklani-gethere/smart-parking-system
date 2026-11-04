@@ -55,10 +55,10 @@ export default function BookingDetailsPage({
   }, [id]);
 
   const handleDownloadPNG = () => {
-    if (!qrDataUrl || !booking) return;
+    if (!booking) return;
     const a = document.createElement('a');
-    a.href = qrDataUrl;
-    a.download = `ParkSmart-QR-${booking.slot_code}-${booking.vehicle_number}.png`;
+    a.href = `/api/bookings/${id}/qr`;
+    a.download = `ParkWise-QR-${booking.slot_code}-${booking.vehicle_number}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -168,18 +168,12 @@ export default function BookingDetailsPage({
         {/* QR Code Presentation */}
         <div className="p-6 sm:p-8 flex flex-col items-center justify-center bg-slate-50/60 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800">
           <div className="p-4 rounded-3xl bg-white dark:bg-white shadow-md border-4 border-slate-200/60 dark:border-slate-700">
-            {qrDataUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={qrDataUrl}
-                alt="Booking Signed QR"
-                className="w-56 h-56 sm:w-64 sm:h-64 object-contain"
-              />
-            ) : (
-              <div className="w-56 h-56 flex items-center justify-center">
-                <QrCode className="w-16 h-16 text-slate-300 animate-pulse" />
-              </div>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/bookings/${id}/qr`}
+              alt="Booking Signed QR"
+              className="w-56 h-56 sm:w-64 sm:h-64 object-contain"
+            />
           </div>
 
           <div className="mt-4 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">

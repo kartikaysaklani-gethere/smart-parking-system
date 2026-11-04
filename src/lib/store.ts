@@ -226,6 +226,26 @@ export async function getBookings(userId?: string): Promise<Booking[]> {
   if (userId) {
     list = list.filter((b) => b.user_id === userId);
   }
+
+  // Ensure every booking has a cryptographically signed QR token
+  for (const b of list) {
+    if (!b.qr_token) {
+      b.qr_token = generateSignedQRToken({
+        bookingId: b.id,
+        driverName: b.driver_name,
+        phone: b.phone,
+        vehicleNumber: b.vehicle_number,
+        carModel: b.car_model,
+        carColor: b.car_color,
+        slotCode: b.slot_code,
+        startTime: b.start_time,
+        hours: b.hours,
+        amount: b.amount,
+        issuedAt: new Date(b.created_at || Date.now()).getTime(),
+      });
+    }
+  }
+
   return list.sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
 }
 
@@ -244,7 +264,23 @@ export async function getBookingById(id: string): Promise<Booking | null> {
       // Fallback
     }
   }
-  return memoryStore.bookings.find((b) => b.id === id) || null;
+  const booking = memoryStore.bookings.find((b) => b.id === id) || null;
+  if (booking && !booking.qr_token) {
+    booking.qr_token = generateSignedQRToken({
+      bookingId: booking.id,
+      driverName: booking.driver_name,
+      phone: booking.phone,
+      vehicleNumber: booking.vehicle_number,
+      carModel: booking.car_model,
+      carColor: booking.car_color,
+      slotCode: booking.slot_code,
+      startTime: booking.start_time,
+      hours: booking.hours,
+      amount: booking.amount,
+      issuedAt: new Date(booking.created_at || Date.now()).getTime(),
+    });
+  }
+  return booking;
 }
 
 /**

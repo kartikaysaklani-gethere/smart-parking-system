@@ -221,29 +221,24 @@ export default function BookingsListPage() {
 
                 {/* QR Code Pass Section */}
                 <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                  {qrImage ? (
-                    <div
-                      onClick={() => setSelectedPass(booking)}
-                      className="cursor-pointer group relative w-24 h-24 p-1.5 rounded-xl bg-white border border-slate-200 shadow-sm shrink-0 flex items-center justify-center"
-                      title="Click to enlarge entry pass"
-                    >
-                      <Image
-                        src={qrImage}
-                        alt="Booking QR Code"
-                        width={96}
-                        height={96}
-                        className="w-full h-full object-contain"
-                        unoptimized
-                      />
-                      <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                        <Maximize2 className="w-5 h-5" />
-                      </div>
+                  <div
+                    onClick={() => setSelectedPass(booking)}
+                    className="cursor-pointer group relative w-24 h-24 p-1.5 rounded-xl bg-white border border-slate-200 shadow-sm shrink-0 flex items-center justify-center overflow-hidden"
+                    title="Click to enlarge entry pass"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/bookings/${booking.id}/qr`}
+                      alt={`QR Pass for ${booking.slot_code}`}
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                      <Maximize2 className="w-5 h-5" />
                     </div>
-                  ) : (
-                    <div className="w-24 h-24 rounded-xl bg-slate-200 dark:bg-slate-700 animate-pulse shrink-0" />
-                  )}
+                  </div>
 
-                  <div className="space-y-1 text-xs">
+                  <div className="space-y-1 text-xs flex-1">
                     <span className="font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                       <QrCode className="w-4 h-4 text-indigo-500" />
                       Cryptographic Gate Pass
@@ -251,13 +246,25 @@ export default function BookingsListPage() {
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
                       Scan at gate camera or staff kiosk for automated barrier entry.
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPass(booking)}
-                      className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline pt-1 block"
-                    >
-                      Expand Fullscreen Pass &rarr;
-                    </button>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPass(booking)}
+                        className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1"
+                      >
+                        <Maximize2 className="w-3 h-3" />
+                        Enlarge Pass
+                      </button>
+                      <span className="text-slate-300 dark:text-slate-700">•</span>
+                      <a
+                        href={`/api/bookings/${booking.id}/qr`}
+                        download={`ParkWise-Pass-${booking.slot_code}-${booking.vehicle_number}.png`}
+                        className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 inline-flex items-center gap-1"
+                      >
+                        <Download className="w-3 h-3" />
+                        Download QR
+                      </a>
+                    </div>
                   </div>
                 </div>
 
@@ -330,21 +337,28 @@ export default function BookingsListPage() {
 
             {/* High-Contrast QR Code */}
             <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-inner inline-block mx-auto">
-              {qrMap[selectedPass.id] && (
-                <Image
-                  src={qrMap[selectedPass.id]}
-                  alt="High Contrast Entry QR"
-                  width={220}
-                  height={220}
-                  className="mx-auto"
-                  unoptimized
-                />
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/bookings/${selectedPass.id}/qr`}
+                alt="High Contrast Entry QR"
+                className="w-56 h-56 mx-auto object-contain"
+              />
+            </div>
+
+            <div className="flex justify-center gap-3">
+              <a
+                href={`/api/bookings/${selectedPass.id}/qr`}
+                download={`ParkWise-Pass-${selectedPass.slot_code}-${selectedPass.vehicle_number}.png`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition-all"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Save QR to Phone
+              </a>
             </div>
 
             <div className="space-y-1 text-xs text-slate-500 dark:text-slate-400">
               <p className="font-mono text-[10px] text-slate-400">
-                Token ID: {selectedPass.id.slice(0, 16)}...
+                Pass ID: {selectedPass.id.slice(0, 16)}...
               </p>
               <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
                 <ShieldCheck className="w-4 h-4" />
