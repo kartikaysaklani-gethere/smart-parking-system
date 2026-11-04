@@ -1,20 +1,20 @@
 /*
   =============================================================================
-  PARKWISE PRO - SMART MOBILITY & AUTOMATED PARKING SYSTEM
+  PARKWISE PRO - FINAL SMART MOBILITY & AUTOMATED PARKING SYSTEM
   =============================================================================
   Engineered by: Kartikay Saklani & Anshuman (Chandigarh University)
   Board: ESP32 Dev Module
 
   Hardware Calibrations:
-    - Wi-Fi SSID:         "Anshuman"
-    - Wi-Fi Password:     "abcd12345"
-    - Gate Sensor Range:  <= 7 cm (Trigger arrival)
+    - Wi-Fi SSID:         "OnePlus"
+    - Wi-Fi Password:     "kartikay1234"
+    - Gate Sensor Range:  <= 6 cm (Trigger arrival - reduced by 1 cm)
     - Slot Sensors Range: <= 9 cm (Occupied threshold)
-    - Servo Gate Barrier: 90 deg (Open) for 3 Seconds, then returns to 0 deg
+    - Servo Gate Barrier: 90 deg (Open) for 3 Seconds, then auto-closes to 0 deg
     - Slot Guidance LEDs: Active HIGH (GPIO16, GPIO17, GPIO19)
     - Total Garage Bays:  6 Slots (Starts with 4 Free: G1, G2, F1, F2)
                           G3 = Permanently Occupied | F3 = Permanently Reserved
-    - Extended Wire Fix:  15us clean trigger pulse, 15ms acoustic settling delay
+    - Wire Optimization:  15us clean trigger pulse, 15ms acoustic settling delay
   =============================================================================
 */
 
@@ -27,8 +27,8 @@
 #include <ESP32Servo.h>
 
 // ===================== WI-FI & CLOUD CONFIG =====================
-const char* WIFI_SSID     = "Anshuman";
-const char* WIFI_PASSWORD = "abcd12345";
+const char* WIFI_SSID     = "OnePlus";
+const char* WIFI_PASSWORD = "kartikay1234";
 const char* BASE_URL      = "https://smart-parking-system-ten-pearl.vercel.app";
 const char* DEVICE_KEY    = "esp32_smart_parking_secret_key_2026";
 
@@ -39,7 +39,7 @@ const uint8_t PIN_SERVO     = 13; // GPIO13: Gate Servo Signal (orange wire)
 const uint8_t PIN_GATE_TRIG = 4;  // GPIO4:  Gate Sensor TRIG
 const uint8_t PIN_GATE_ECHO = 34; // GPIO34: Gate Sensor ECHO (Input only)
 
-// Slot Names and Pins
+// Slot Names and Sensors
 const char*   SLOT_NAME[3]  = {"G1", "G2", "F1"};
 const uint8_t SLOT_TRIG[3]  = {23, 25, 26}; // GPIO23 (G1), GPIO25 (G2), GPIO26 (F1)
 const uint8_t SLOT_ECHO[3]  = {35, 36, 39}; // GPIO35 (G1), GPIO36 (G2), GPIO39 (F1)
@@ -52,12 +52,12 @@ const uint8_t PIN_SCL       = 22; // GPIO22: LCD SCL
 // ---------- OPERATIONAL CALIBRATIONS ----------
 const uint8_t  LCD_ADDR             = 0x27;
 const int      SERVO_CLOSED         = 0;   // Barrier closed angle
-const int      SERVO_OPEN           = 90;  // Barrier open angle (90 degrees as requested)
+const int      SERVO_OPEN           = 90;  // Barrier open angle (90 degrees)
 const unsigned long GATE_HOLD_MS    = 3000UL; // Gate remains open for 3 seconds
+const unsigned long GATE_COOLDOWN_MS = 1500UL; // Cooldown after closing to prevent flutter
 
-// Distance Thresholds
-const float    GATE_OPEN_CM         = 7.0f;   // Gate triggers when car <= 7 cm
-const float    GATE_CLEAR_CM        = 12.0f;  // Hysteresis release distance
+// Distance Thresholds (Calibrated)
+const float    GATE_OPEN_CM         = 6.0f;   // Gate triggers when vehicle <= 6 cm
 const float    SLOT_OCCUPIED_CM     = 9.0f;   // Slot occupied when distance <= 9 cm
 
 // Extended Wire & Signal Timing
@@ -80,8 +80,8 @@ float gateDist              = 999.0f;
 bool gateCar                = false;
 bool gateIsOpen             = false;
 unsigned long gateOpenedAt  = 0;
+unsigned long gateClosedAt  = 0;
 int assignedSlotIdx         = -1; // -1 = None, 0 = G1, 1 = G2, 2 = F1
-unsigned long assignTime    = 0;
 
 uint8_t roundRobin          = 0;
 unsigned long lastTick = 0, lastPrint = 0;
@@ -112,12 +112,12 @@ static float median5(const float in[5]) {
   return v[2];
 }
 
-// Robust ultrasonic read with 15us pulse for extended wire harnesses
+// Clean ultrasonic read with 15us pulse for extended wire harnesses
 static float readCm(uint8_t trig, uint8_t echo) {
   digitalWrite(trig, LOW);
   delayMicroseconds(4);
   digitalWrite(trig, HIGH);
-  delayMicroseconds(15); // Clean 15us pulse ensures signal propagates through long wires
+  delayMicroseconds(15);
   digitalWrite(trig, LOW);
 
   unsigned long us = pulseIn(echo, HIGH, ULTRA_TIMEOUT_US);
@@ -130,10 +130,11 @@ static void setGate(bool open) {
   if (open) {
     gateServo.write(SERVO_OPEN);
     gateOpenedAt = millis();
-    Serial.printf("[GATE] OPEN (90 deg) at %lu ms\n", gateOpenedAt);
+    Serial.printf("[GATE] OPENED to 90 degrees at %lu ms\n", gateOpenedAt);
   } else {
     gateServo.write(SERVO_CLOSED);
-    Serial.println("[GATE] CLOSED (0 deg)");
+    gateClosedAt = millis();
+    Serial.println("[GATE] CLOSED to 0 degrees");
   }
 }
 
@@ -165,9 +166,9 @@ static void updateSlot(uint8_t i, float cm) {
     bool wasOccupied = occupied[i];
     occupied[i] = candidate[i];
 
-    // If car just parked in the assigned slot, clear assignment
+    // If car parked into the assigned slot, clear guidance assignment
     if (!wasOccupied && occupied[i] && assignedSlotIdx == (int)i) {
-      Serial.printf("[ASSIGNMENT] Driver parked in %s! Guidance completed.\n", SLOT_NAME[i]);
+      Serial.printf("[ASSIGNMENT] Driver successfully parked in %s!\n", SLOT_NAME[i]);
       assignedSlotIdx = -1;
     }
   }
@@ -176,41 +177,39 @@ static void updateSlot(uint8_t i, float cm) {
 static void gateLogic(float cm, bool remoteHold) {
   if (cm < 0) cm = 999.0f;
   gateDist = cm;
-  gateCar = (gateDist <= GATE_OPEN_CM); // Car present at gate if <= 7 cm
+  gateCar = (gateDist <= GATE_OPEN_CM); // Car at gate if <= 6 cm
 
-  // Vehicle arrives at gate:
-  if (gateCar && !gateIsOpen) {
-    // 1. Automatically pick first available free parking bay
+  // Cooldown check after previous close
+  bool inCooldown = (millis() - gateClosedAt < GATE_COOLDOWN_MS);
+
+  // 1. Vehicle arrives at gate:
+  if (gateCar && !gateIsOpen && !inCooldown) {
+    // Automatically find first available free parking bay
     assignedSlotIdx = -1;
     for (uint8_t i = 0; i < 3; i++) {
       if (!occupied[i]) {
         assignedSlotIdx = i;
-        assignTime = millis();
         break;
       }
     }
 
     if (assignedSlotIdx != -1) {
-      Serial.printf("[AUTO-ASSIGN] Car at gate! Assigned: %s. LED glowing.\n", SLOT_NAME[assignedSlotIdx]);
-    } else {
-      Serial.println("[AUTO-ASSIGN] Car at gate but all sensor bays full!");
+      Serial.printf("[AUTO-ASSIGN] Car detected at gate (%.1fcm <= 6cm)! Assigned %s. LED Lit.\n",
+                    gateDist, SLOT_NAME[assignedSlotIdx]);
     }
 
-    // 2. Open servo barrier to 90 degrees
+    // Open barrier to 90 degrees
     setGate(true);
   }
 
-  // Gate auto-close timer: 3 seconds after opening
+  // 2. Gate auto-close timer: closes automatically after 3 seconds
   if (gateIsOpen && !remoteHold) {
     if (millis() - gateOpenedAt >= GATE_HOLD_MS) {
-      // If car has cleared the sensor (> 7cm) or 3s has elapsed:
-      if (gateDist > GATE_OPEN_CM) {
-        setGate(false);
-      }
+      setGate(false);
     }
   }
 
-  // Remote hold override from Admin page
+  // 3. Remote hold override from Admin page
   if (remoteHold && !gateIsOpen) {
     setGate(true);
   } else if (!remoteHold && !gateCar && gateIsOpen && (millis() - gateOpenedAt >= GATE_HOLD_MS)) {
@@ -342,7 +341,7 @@ void setup() {
   delay(300);
 
   Serial.println("\n==================================================");
-  Serial.println("  PARKWISE PRO - SMART MOBILITY & PARKING SYSTEM  ");
+  Serial.println("  PARKWISE PRO - FINAL SMART MOBILITY SYSTEM     ");
   Serial.println("  Kartikay Saklani & Anshuman | Chandigarh Univ   ");
   Serial.println("==================================================");
 
@@ -355,20 +354,16 @@ void setup() {
     pinMode(SLOT_ECHO[i], INPUT);
     // Initialize Guidance LEDs (Active HIGH: HIGH = ON, LOW = OFF)
     pinMode(SLOT_LED[i], OUTPUT);
-    digitalWrite(SLOT_LED[i], LOW); // Start with LEDs off until assigned or free
+    digitalWrite(SLOT_LED[i], HIGH); // Light up free bay guidance LEDs on boot
     for (uint8_t k = 0; k < 5; k++) samples[i][k] = 400.0f;
   }
 
-  // Configure Servo Timers on ESP32 (Prevents Wi-Fi timer conflict)
-  ESP32PWM::allocateTimer(0);
-  ESP32PWM::allocateTimer(1);
-  ESP32PWM::allocateTimer(2);
-  ESP32PWM::allocateTimer(3);
+  // Attach Servo (Compatible across all ESP32 Arduino Cores)
   gateServo.setPeriodHertz(50);
   gateServo.attach(PIN_SERVO, 500, 2400);
 
   // Startup Calibration Sweep: Test servo movement
-  Serial.println("[SERVO] Self-test sweep: 45 deg -> 0 deg...");
+  Serial.println("[SERVO] Testing barrier sweep: 45 deg -> 0 deg...");
   gateServo.write(45);
   delay(300);
   gateServo.write(SERVO_CLOSED);
@@ -424,8 +419,8 @@ void loop() {
   // ==========================================================
   // Rule:
   // - When a slot is OCCUPIED (car parked <= 9cm): LED turns OFF (LOW).
-  // - When a car arrives at the gate (<= 7cm): the assigned slot LED GLOWS (HIGH) to guide driver!
-  // - When idle: free slots have their guidance LED lit.
+  // - When a car arrives at the gate (<= 6cm): the assigned slot LED GLOWS (HIGH) to guide driver!
+  // - When idle: all free slots have their guidance light lit.
   for (uint8_t i = 0; i < 3; i++) {
     bool ledOn = false;
 
@@ -454,7 +449,6 @@ void loop() {
   // Total 6 bays: G1, G2, G3 (occupied), F1, F2 (virtual free), F3 (reserved).
   // Starts with 4 free out of 6!
   int freeSensorCount = (!occupied[0]) + (!occupied[1]) + (!occupied[2]);
-  // Total free = free sensor bays + 1 virtual free bay (F2)
   int totalFree = freeSensorCount + 1; // 4 free at start!
 
   if (gateCar && assignedSlotIdx != -1) {
