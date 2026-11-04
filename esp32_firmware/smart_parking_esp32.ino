@@ -35,7 +35,7 @@ const char* WIFI_PASSWORD = "kartikay1234";
 // Server Endpoints:
 // - Vercel Cloud (Online): "https://smart-parking-system-ten-pearl.vercel.app"
 // - Local Mac Host (Offline/LAN): "http://10.47.237.156:3000"
-const char* BASE_URL      = "https://smart-parking-system-ten-pearl.vercel.app";
+const char* BASE_URL      = "http://10.47.237.156:3000";
 const char* DEVICE_KEY    = "esp32_smart_parking_secret_key_2026";
 
 // ---------- PIN MAPPINGS (Exact Physical Wiring) ----------
