@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
@@ -24,6 +24,11 @@ export function Navbar() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const navLinks = [
     { href: '/', label: 'Home', icon: Car },
@@ -84,10 +89,14 @@ export function Navbar() {
             aria-label="Toggle theme"
             className="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
           >
-            {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400" />
+            {mounted ? (
+              theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-700" />
+              )
             ) : (
-              <Moon className="w-4 h-4 text-slate-700" />
+              <div className="w-4 h-4" />
             )}
           </button>
 
