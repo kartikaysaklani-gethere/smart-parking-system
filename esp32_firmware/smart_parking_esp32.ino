@@ -317,7 +317,6 @@ static void postTelemetry() {
   if (String(BASE_URL).startsWith("https")) {
     WiFiClientSecure client;
     client.setInsecure(); // Fast TLS bypass for embedded telemetry
-    client.setServerName("smart-parking-system-ten-pearl.vercel.app"); // Required for Vercel SNI!
     client.setTimeout(4);
     
     HTTPClient http;
