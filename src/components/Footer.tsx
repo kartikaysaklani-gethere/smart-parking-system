@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Clock, MapPin, Radio, GraduationCap } from 'lucide-react';
+import { ShieldCheck, Clock, MapPin, Radio } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -22,15 +22,6 @@ export function Footer() {
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
               Automated multi-level parking management system. Real-time ultrasonic slot detection, contactless cryptographic QR entry passes, and automated barrier operations.
             </p>
-            <div className="pt-2">
-              <Link
-                href="/team"
-                className="inline-flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                <GraduationCap className="w-4 h-4" />
-                <span>Engineered by Kartikay Saklani & Anshuman (Chandigarh University) &rarr;</span>
-              </Link>
-            </div>
           </div>
 
           {/* Quick Navigation */}
@@ -57,11 +48,6 @@ export function Footer() {
               <li>
                 <Link href="/gate" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                   Gate Barrier Terminal
-                </Link>
-              </li>
-              <li>
-                <Link href="/team" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Project Engineers
                 </Link>
               </li>
             </ul>

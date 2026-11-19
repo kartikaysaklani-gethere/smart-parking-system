@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'ParkWise | Smart Parking & Mobility Platform',
   description:
-    'IoT-driven multi-level parking platform by Kartikay Saklani & Anshuman (Chandigarh University). Features real-time ultrasonic slot detection, automated barrier entry, and instant QR passes.',
+    'IoT-driven multi-level parking platform. Features real-time ultrasonic slot detection, automated barrier entry, and instant QR passes.',
 };
 
 export default function RootLayout({

@@ -16,7 +16,6 @@ import {
   Menu,
   X,
   Radio,
-  GraduationCap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,7 +36,6 @@ export function Navbar() {
     { href: '/bookings', label: 'My Bookings', icon: Ticket },
     { href: '/gate', label: 'Gate Terminal', icon: DoorOpen },
     { href: '/admin', label: 'Operations', icon: ShieldCheck },
-    { href: '/team', label: 'Engineers', icon: GraduationCap },
   ];
 
   return (

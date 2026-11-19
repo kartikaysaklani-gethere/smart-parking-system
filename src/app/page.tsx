@@ -110,14 +110,6 @@ export default function LandingPage() {
               <Layers className="w-4 h-4 text-cyan-400" />
               <span>Live Garage Map</span>
             </Link>
-
-            <Link
-              href="/team"
-              className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-medium text-sm border border-white/10 transition-all"
-            >
-              <Cpu className="w-4 h-4 text-emerald-400" />
-              <span>Engineers & Creators</span>
-            </Link>
           </div>
         </div>
       </section>
